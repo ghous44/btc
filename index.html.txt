@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTCUSDT Live Candles</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f0f0f0; }
+    h1 { text-align: center; }
+    canvas { width: 100%; height: 400px; }
+  </style>
+</head>
+<body>
+
+<h1>Live 5-Minute Candles for BTC/USDT</h1>
+<canvas id="candlestickChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('candlestickChart').getContext('2d');
+
+  // Initialize the chart
+  const chart = new Chart(ctx, {
+    type: 'candlestick',
+    data: {
+      datasets: [{
+        label: 'BTC/USDT',
+        data: [],
+        borderColor: 'rgb(255, 99, 132)',
+        borderWidth: 1,
+        fill: false
+      }]
+    },
+    options: {
+      scales: {
+        x: {
+          type: 'time',
+          title: {
+            display: true,
+            text: 'Time'
+          }
+        },
+        y: {
+          ticks: {
+            beginAtZero: false
+          },
+          title: {
+            display: true,
+            text: 'Price (USDT)'
+          }
+        }
+      }
+    }
+  });
+
+  async function fetchCandles() {
+    const url = 'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=5m&limit=100';
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const chartData = data.map(candle => ({
+      t: new Date(candle[0]),   // Time
+      o: parseFloat(candle[1]), // Open
+      h: parseFloat(candle[2]), // High
+      l: parseFloat(candle[3]), // Low
+      c: parseFloat(candle[4])  // Close
+    }));
+
+    // Update the chart with new data
+    chart.data.datasets[0].data = chartData;
+    chart.update();
+  }
+
+  // Fetch initial data and set up interval for live updates
+  fetchCandles();
+  setInterval(fetchCandles, 5 * 60 * 1000);  // Fetch new data every 5 minutes
+</script>
+
+</body>
+</html>
